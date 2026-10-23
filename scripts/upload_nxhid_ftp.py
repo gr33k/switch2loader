@@ -20,7 +20,7 @@ def remote_bytes(ftp, name):
     try:
         ftp.retrbinary(f"RETR {name}", chunks.append)
     except (error_perm, error_temp) as exc:
-        # ftpd-classic on Switch reports a missing file as 450 rather than 550.
+        # Some Switch FTP servers report a missing file as 450 rather than 550.
         if str(exc).startswith(("550", "450 No such file or directory")):
             return None
         raise

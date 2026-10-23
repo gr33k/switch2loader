@@ -52,7 +52,7 @@ class FtpInstallTests(unittest.TestCase):
         self.assertEqual(result["status"], "installed")
         self.assertEqual(ftp.files, {"nxhid.nro": b"verified-nro"})
 
-    def test_switch_ftpd_classic_missing_file_code(self):
+    def test_switch_ftp_missing_file_code_450(self):
         ftp = FakeFtp(missing_code="450")
         result = install(ftp, b"verified-nro")
         self.assertEqual(result["status"], "installed")
