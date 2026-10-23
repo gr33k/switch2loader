@@ -5,3 +5,5 @@
 [hidden]{display:none!important}
 .transfer-guide{border:1px solid #3b7b56;background:#0a1b12;padding:11px 14px;margin:12px 0;color:#cce6d3;font:12px/1.6 var(--mono)}.transfer-guide summary{color:var(--green2);font-weight:700;cursor:pointer}.transfer-guide ol{padding-left:20px}.transfer-guide li{margin:9px 0}.transfer-guide code{color:#9effc5}.transfer-guide p{margin:10px 0 0;color:var(--muted)}
 .transfer-reality{border:1px solid #8c7650;background:#20190e;padding:12px 14px;margin:12px 0;color:#e3d5b9;font:12px/1.6 var(--mono)}.transfer-reality strong{color:#ffe8ad}.transfer-reality code{color:#b0ffd1}
+
+button.secondary:disabled{cursor:not-allowed;opacity:.42;filter:saturate(.5)}
