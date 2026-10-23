@@ -2,6 +2,7 @@ const $ = id => document.getElementById(id);
 const local = ['localhost', '127.0.0.1'].includes(location.hostname) || location.port === '39381';
 const requiredSystem = '23.0.1';
 const requiredSmile = '4.4.9';
+const params = new URLSearchParams(location.search);
 let activeStep = 1;
 let state = null;
 let deviceConfirmed = false;
@@ -83,20 +84,25 @@ async function refresh() {
 }
 
 function updateCompanionLink() {
-  const value = $('companion-address').value.trim();
+  let value = $('companion-address').value.trim();
   try {
+    if (value && !/^https?:\/\//i.test(value)) value = 'http://' + value;
     const url = new URL(value);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error();
     if (url.username || url.password) throw new Error();
+    if (!url.port) url.port = '39381';
+    localStorage.setItem('switch2-companion-url', url.origin + url.pathname);
+    for (const [key, id] of [['system', 'system-version'], ['smile', 'smile-version'], ['console', 'console-ip']]) {
+      if ($(id).value.trim()) url.searchParams.set(key, $(id).value.trim());
+    }
     $('open-local').href = url.href;
-    localStorage.setItem('switch2-companion-url', url.href);
   } catch { $('open-local').href = 'http://127.0.0.1:39381/'; }
 }
 
 document.querySelectorAll('.step').forEach(button => button.addEventListener('click', () => showStep(Number(button.dataset.step))));
 for (const [id, key] of [['system-version', 'system'], ['smile-version', 'smile'], ['console-ip', 'console']]) {
-  $(id).value = localStorage.getItem('switch2-' + key) || '';
-  $(id).addEventListener('input', () => { localStorage.setItem('switch2-' + key, $(id).value); deviceConfirmed = false; markSteps(); });
+  $(id).value = params.get(key) || localStorage.getItem('switch2-' + key) || '';
+  $(id).addEventListener('input', () => { localStorage.setItem('switch2-' + key, $(id).value); deviceConfirmed = false; markSteps(); updateCompanionLink(); });
 }
 $('bootstrap-ready').checked = localStorage.getItem('switch2-bootstrap') === 'true';
 $('bootstrap-ready').addEventListener('change', () => { localStorage.setItem('switch2-bootstrap', String($('bootstrap-ready').checked)); markSteps(); });
@@ -133,7 +139,7 @@ $('start-run').addEventListener('click', async () => {
   } catch (error) { $('run-note').textContent = error.message; $('run-note').classList.add('error'); await refresh(); }
 });
 $('copy-command').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('start-command').textContent); $('copy-command').textContent = 'Copied'; } catch { $('copy-command').textContent = 'Select and copy the command'; } });
-const suggestedHost = new URLSearchParams(location.search).get('host');
+const suggestedHost = params.get('host');
 $('companion-address').value = suggestedHost || localStorage.getItem('switch2-companion-url') || '';
 $('companion-address').addEventListener('input', updateCompanionLink);
 updateCompanionLink();
