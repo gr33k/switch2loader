@@ -8,6 +8,18 @@ A portable web guide and small Node.js LAN companion for the pinned [ns2jb](http
 - A Mac, Linux computer, or NAS reachable from the console on the same LAN, with Node.js 22 or newer and Git.
 - Upstream `bootstrap.bas` saved as `NS2` in SmileBASIC program slot 0. The upstream project does not publish a SmileBASIC download key. A USB HID keyboard sender may automate this **one-time** transfer; a browser USB cable by itself cannot do it.
 
+### Choosing the one-time transfer
+
+There is currently no verified, hardware-free, automatic import for `bootstrap.bas`. A public website or LAN server cannot send the first program into an unmodified SmileBASIC editor.
+
+| Path | What it takes | Current status |
+| --- | --- | --- |
+| USB HID-capable microcontroller | A small board connected to the Switch 2 that acts as a keyboard; no Mac boot-security change | Plausible safer automation path; a Switch 2 sender still needs physical verification |
+| Regular USB keyboard | Manually enter and check the upstream program | No extra driver, but around 229 lines of typing |
+| `mac2jb` on Apple silicon | Experimental USB gadget driver and Reduced Security | Physically reported on one Mac model; not recommended as the default end-user path |
+
+If you have only a Mac, a USB cable, and the console, stop at the bootstrap step until you obtain a verified transfer method. The LAN companion becomes useful **after** `NS2` is saved.
+
 ## Fast path
 
 On the LAN computer:
@@ -25,7 +37,7 @@ The website accepts the console's LAN IP and can ping it **from the companion co
 
 ## One-time bootstrap transfer
 
-Download the pinned upstream [bootstrap.bas](https://gitlab.com/pepsipu/ns2jb/-/blob/95f5525089273c5fce0b95047f3600f8442e96ae/bootstrap.bas), transfer it into SmileBASIC slot 0 using a verified USB HID keyboard sender, then save it as `NS2`. The upstream file is about 229 lines; this repository does not invent a download key or silently type it through a website. [mac2jb](https://github.com/cpypwn/mac2jb) is an experimental Apple silicon USB gadget sender. It requires changes to Mac boot security and an experimental kernel extension, and its reported physical test used a different Mac model. Review those changes before using it.
+Download the pinned upstream [bootstrap.bas](https://gitlab.com/pepsipu/ns2jb/-/blob/95f5525089273c5fce0b95047f3600f8442e96ae/bootstrap.bas), transfer it into SmileBASIC slot 0 using a verified USB HID keyboard sender, then save it as `NS2`. The upstream file is about 229 lines; this repository does not invent a download key or silently type it through a website. [mac2jb](https://github.com/cpypwn/mac2jb) is an experimental Apple silicon USB gadget sender. It requires changes to Mac boot security and an experimental kernel extension, and its reported physical test used a different Mac model. Leave a daily-use Mac's security unchanged unless you deliberately accept those changes.
 
 ## Run the FS demo
 
