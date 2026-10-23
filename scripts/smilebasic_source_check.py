@@ -15,11 +15,17 @@ CHECKER_PATH = Path(__file__).with_name("smilebasic_source_checker.bas")
 
 
 def digest(lines: list[str]) -> tuple[int, int, int, int]:
+    """Model PRGGET$(), which includes an LF in each returned editor line.
+
+    The on-console checker also adds an LF marker after each returned line.
+    This was confirmed by the physical three-line fixture on 2026-10-23.
+    """
     values = [0, 0]
     count = 0
     for line in lines:
-        count += len(line)
-        for char in line + "\n":
+        returned = line + "\n"
+        count += len(returned)
+        for char in returned + "\n":
             code = ord(char)
             for index, (base, modulus) in enumerate(HASHES):
                 values[index] = (values[index] * base + code) % modulus
