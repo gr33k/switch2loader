@@ -12,21 +12,7 @@ BASE = 131
 MODULUS = 1_000_000_007
 MAX_BYTES = 64 * 1024
 
-CHECKER = '''' Read-only slot-0 source checker; run this SLOT 1 only.
-VAR N=PRGSIZE(0),C=0,H=0,I,J,S$
-IF N<1 OR N>400 THEN PRINT "BAD SIZE",N:END
-PRGEDIT 0
-FOR I=1 TO N
- S$=PRGGET$()
- C=C+LEN(S$)
- FOR J=0 TO LEN(S$)-1
-  H=(H*131+ASC(S$[J])) MOD 1000000007
- NEXT
- H=(H*131+10) MOD 1000000007
-NEXT
-PRINT "LINES",N,"CHARS",C,"HASH",H
-END
-'''
+CHECKER_PATH = Path(__file__).with_name("smilebasic_source_checker.bas")
 
 
 def digest(lines: list[str]) -> tuple[int, int, int]:
@@ -56,7 +42,7 @@ def main() -> None:
         parser.error("Source must contain 1 to 400 lines")
 
     print("Paste this checker into SmileBASIC slot 1, then RUN 1 from Direct mode:")
-    print(CHECKER)
+    print(CHECKER_PATH.read_text(encoding="ascii"))
     print("Expected LINES, CHARS, HASH:", *digest(lines))
     if raw.endswith(b"\n"):
         print("If the final Enter made one extra empty editor line:", *digest(lines + [""]))
