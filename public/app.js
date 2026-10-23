@@ -32,9 +32,12 @@ function markSteps() {
   }));
   $('start-run').disabled = !checks.every(([ok]) => ok) || ['waiting', 'connected'].includes(state?.status);
   $('run-note').textContent = state?.status === 'verified' ? 'FS demo verified by upstream host.' : state?.status === 'failed' ? 'Host stopped. Review the event log and restart the console before retrying.' : 'Only start after the Switch 2 is freshly booted and SmileBASIC is open.';
-  const transferReady = !!state?.nxhidReady && validIp($('switch1-ip').value) && $('nxhid-editor-ready').checked && state?.transfer?.status !== 'running';
+  const hostBusy = ['waiting', 'connected'].includes(state?.status);
+  const transferReady = !!state?.nxhidReady && validIp($('switch1-ip').value) && $('nxhid-editor-ready').checked && state?.transfer?.status !== 'running' && state?.ftpInstall?.status !== 'running' && !hostBusy;
   $('nxhid-probe').disabled = !transferReady;
   $('nxhid-bootstrap').disabled = !transferReady || !$('nxhid-probe-visible').checked;
+  const ftpPort = Number($('switch1-ftp-port').value);
+  $('nxhid-ftp-install').disabled = !state?.nxhidReady || !validIp($('switch1-ip').value) || !Number.isInteger(ftpPort) || ftpPort < 1 || ftpPort > 65535 || !$('nxhid-ftp-ready').checked || state?.ftpInstall?.status === 'running' || state?.transfer?.status === 'running' || hostBusy;
 }
 
 function renderState(data) {
@@ -46,6 +49,8 @@ function renderState(data) {
   $('nxhid-public-note').hidden = true;
   $('nxhid-result').textContent = !data.nxhidReady ? 'On the host, run sh scripts/fetch-nxhid.sh first.' : data.transfer?.message || 'Ready for a short keyboard test.';
   $('nxhid-result').classList.toggle('error', data.transfer?.status === 'failed');
+  $('nxhid-ftp-result').textContent = !data.nxhidReady ? 'On the host, run sh scripts/fetch-nxhid.sh first.' : data.ftpInstall?.message || 'Ready when your Switch FTP server is running.';
+  $('nxhid-ftp-result').classList.toggle('error', data.ftpInstall?.status === 'failed');
   $('local-controls').hidden = false;
   $('companion-address-field').hidden = true;
   $('open-local').hidden = true;
@@ -115,8 +120,34 @@ for (const [id, key] of [['system-version', 'system'], ['smile-version', 'smile'
 $('bootstrap-ready').checked = localStorage.getItem('switch2-bootstrap') === 'true';
 $('bootstrap-ready').addEventListener('change', () => { localStorage.setItem('switch2-bootstrap', String($('bootstrap-ready').checked)); markSteps(); });
 $('switch1-ip').addEventListener('input', markSteps);
+$('switch1-ftp-port').addEventListener('input', markSteps);
+$('nxhid-ftp-ready').addEventListener('change', markSteps);
 $('nxhid-editor-ready').addEventListener('change', markSteps);
 $('nxhid-probe-visible').addEventListener('change', markSteps);
+async function installNxhidOverFtp() {
+  const options = {
+    switchIp: $('switch1-ip').value.trim(),
+    port: Number($('switch1-ftp-port').value),
+    username: $('switch1-ftp-user').value,
+    password: $('switch1-ftp-password').value,
+    ftpReady: $('nxhid-ftp-ready').checked
+  };
+  $('nxhid-ftp-install').disabled = true;
+  $('nxhid-ftp-result').textContent = 'Connecting to FTP and verifying the uploaded app…';
+  $('switch1-ftp-password').value = '';
+  $('nxhid-ftp-ready').checked = false;
+  try {
+    const response = await fetch('/api/nxhid/install', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Switch2-Local': '1' }, body: JSON.stringify(options) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Could not install NXHID over FTP.');
+    renderState(result);
+  } catch (error) {
+    await refresh();
+    $('nxhid-ftp-result').textContent = error.message || 'FTP upload failed.';
+    $('nxhid-ftp-result').classList.add('error');
+  }
+}
+$('nxhid-ftp-install').addEventListener('click', installNxhidOverFtp);
 async function sendNxhid(mode) {
   const button = mode === 'probe' ? $('nxhid-probe') : $('nxhid-bootstrap');
   button.disabled = true;

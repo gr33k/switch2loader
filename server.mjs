@@ -18,8 +18,10 @@ const port = Number(process.env.SWITCH2_WIZARD_PORT || 39381);
 const bind = process.env.SWITCH2_WIZARD_BIND || '127.0.0.1';
 const session = { status: 'idle', stage: 0, command: '', events: [], hostIp: '', verified: false };
 const transfer = { status: 'idle', mode: '', switchIp: '', message: '' };
+const ftpInstall = { status: 'idle', switchIp: '', message: '', backup: '' };
 let child = null;
 let sender = null;
+let uploader = null;
 
 function matchesHash(path, expected) {
   try { return createHash('sha256').update(readFileSync(path)).digest('hex') === expected; }
@@ -44,7 +46,7 @@ function event(kind, message) {
 }
 
 function snapshot() {
-  return { ...session, events: [...session.events], transfer: { ...transfer }, nxhidReady: nxhidReady(), upstreamReady: upstreamReady(), hostAddresses: ipv4Addresses(networkInterfaces()), expectedCommit };
+  return { ...session, events: [...session.events], transfer: { ...transfer }, ftpInstall: { ...ftpInstall }, nxhidReady: nxhidReady(), upstreamReady: upstreamReady(), hostAddresses: ipv4Addresses(networkInterfaces()), expectedCommit };
 }
 
 function json(res, code, value) {
@@ -126,6 +128,36 @@ function sendNxhid(switchIp, mode) {
   });
 }
 
+function installNxhidOverFtp(options) {
+  ftpInstall.status = 'running'; ftpInstall.switchIp = options.switchIp;
+  ftpInstall.message = 'Uploading and reading back the NXHID app from the original Switch SD card.';
+  ftpInstall.backup = '';
+  event('system', `NXHID FTP install started to original Switch at ${options.switchIp}:${options.port}.`);
+  uploader = spawn('python3', [join(root, 'scripts', 'upload_nxhid_ftp.py')], { cwd: root, stdio: ['pipe', 'pipe', 'pipe'], timeout: 60000 });
+  let output = '', errors = '';
+  uploader.stdout.setEncoding('utf8'); uploader.stderr.setEncoding('utf8');
+  uploader.stdout.on('data', chunk => { output = (output + chunk).slice(-2000); });
+  uploader.stderr.on('data', chunk => { errors = (errors + chunk).slice(-400); });
+  uploader.stdin.end(JSON.stringify(options));
+  uploader.on('error', error => {
+    ftpInstall.status = 'failed'; ftpInstall.message = error.message;
+    event('error', `NXHID FTP upload could not start: ${error.message}`); uploader = null;
+  });
+  uploader.on('close', code => {
+    if (ftpInstall.status !== 'failed') {
+      let result;
+      try { result = JSON.parse(output); } catch { result = { status: 'failed', error: errors.trim() || 'FTP uploader returned no result.' }; }
+      ftpInstall.status = code === 0 && result.status !== 'failed' ? 'installed' : 'failed';
+      ftpInstall.backup = typeof result.backup === 'string' ? result.backup : '';
+      ftpInstall.message = ftpInstall.status === 'installed'
+        ? (result.status === 'already_installed' ? 'NXHID is already installed with the verified file.' : `NXHID uploaded and read back successfully.${ftpInstall.backup ? ` Previous file saved as ${ftpInstall.backup}.` : ''} Close the FTP app, then launch NXHID in full application mode.`)
+        : (result.error || errors.trim() || `FTP uploader stopped with code ${code}.`);
+      event(ftpInstall.status === 'installed' ? 'system' : 'error', `NXHID FTP: ${ftpInstall.message}`);
+    }
+    uploader = null;
+  });
+}
+
 const files = new Map([['/', ['index.html', 'text/html']], ['/index.html', ['index.html', 'text/html']], ['/style.css', ['style.css', 'text/css']], ['/app.js', ['app.js', 'text/javascript']], ['/favicon.svg', ['favicon.svg', 'image/svg+xml']]]);
 const server = createServer(async (req, res) => {
   const pathname = new URL(req.url, 'http://127.0.0.1').pathname;
@@ -143,7 +175,7 @@ const server = createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/start') {
     if (!allowedOrigin(req) || req.headers['x-switch2-local'] !== '1') return json(res, 403, { error: 'Open the LAN wizard and use its Start button.' });
     if (!upstreamReady()) return json(res, 409, { error: 'Pinned upstream checkout is missing. Run sh scripts/fetch-upstream.sh.' });
-    if (child || sender) return json(res, 409, { error: 'A transfer or host session is already running.' });
+    if (child || sender || uploader) return json(res, 409, { error: 'A transfer or host session is already running.' });
     let body = '';
     for await (const chunk of req) { body += chunk; if (body.length > 4096) return json(res, 413, { error: 'Request too large.' }); }
     let hostIp;
@@ -156,7 +188,7 @@ const server = createServer(async (req, res) => {
     if (!allowedOrigin(req) || req.headers['x-switch2-local'] !== '1') return json(res, 403, { error: 'Open the LAN wizard to send through NXHID.' });
     if (!upstreamReady() || !matchesHash(join(upstream, 'bootstrap.bas'), expectedBootstrapHash)) return json(res, 409, { error: 'Pinned bootstrap is missing or changed.' });
     if (!nxhidReady()) return json(res, 409, { error: 'Verified NXHID release is missing. Run sh scripts/fetch-nxhid.sh.' });
-    if (sender || child) return json(res, 409, { error: 'A transfer or host session is already running.' });
+    if (sender || child || uploader) return json(res, 409, { error: 'A transfer or host session is already running.' });
     let body = '';
     for await (const chunk of req) { body += chunk; if (body.length > 256) return json(res, 413, { error: 'Request too large.' }); }
     let switchIp, mode, editorReady;
@@ -164,6 +196,22 @@ const server = createServer(async (req, res) => {
     if (typeof switchIp !== 'string' || !privateIp(switchIp)) return json(res, 400, { error: 'Enter the original Switch IP shown by NXHID.' });
     if (!['probe', 'bootstrap'].includes(mode) || editorReady !== true) return json(res, 400, { error: 'Confirm the target editor is open and select a valid transfer.' });
     sendNxhid(switchIp, mode);
+    return json(res, 202, snapshot());
+  }
+  if (req.method === 'POST' && pathname === '/api/nxhid/install') {
+    if (!allowedOrigin(req) || req.headers['x-switch2-local'] !== '1') return json(res, 403, { error: 'Open the LAN wizard to install NXHID over FTP.' });
+    if (!nxhidReady()) return json(res, 409, { error: 'Verified NXHID release is missing. Run sh scripts/fetch-nxhid.sh.' });
+    if (sender || child || uploader) return json(res, 409, { error: 'A transfer or host session is already running.' });
+    let body = '';
+    for await (const chunk of req) { body += chunk; if (body.length > 512) return json(res, 413, { error: 'Request too large.' }); }
+    let options;
+    try { options = JSON.parse(body); } catch { return json(res, 400, { error: 'Invalid request.' }); }
+    const { switchIp, port = 5000, username = '', password = '', ftpReady } = options;
+    if (typeof switchIp !== 'string' || !privateIp(switchIp)) return json(res, 400, { error: 'Enter the original Switch private LAN IP.' });
+    if (!Number.isInteger(port) || port < 1 || port > 65535) return json(res, 400, { error: 'Enter the FTP port shown on the original Switch.' });
+    if (typeof username !== 'string' || username.length > 64 || typeof password !== 'string' || password.length > 128) return json(res, 400, { error: 'Invalid FTP credentials.' });
+    if (ftpReady !== true) return json(res, 400, { error: 'Confirm the FTP server is running on the original Switch.' });
+    installNxhidOverFtp({ switchIp, port, username, password });
     return json(res, 202, snapshot());
   }
   const file = files.get(pathname);
