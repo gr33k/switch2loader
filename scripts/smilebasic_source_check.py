@@ -8,22 +8,22 @@ executes or edits slot 0. This tool does not send keyboard reports.
 import argparse
 from pathlib import Path
 
-BASE = 131
-MODULUS = 1_000_000_007
+HASHES = ((31, 1_000_003), (37, 1_000_033))
 MAX_BYTES = 64 * 1024
 
 CHECKER_PATH = Path(__file__).with_name("smilebasic_source_checker.bas")
 
 
-def digest(lines: list[str]) -> tuple[int, int, int]:
-    value = 0
+def digest(lines: list[str]) -> tuple[int, int, int, int]:
+    values = [0, 0]
     count = 0
     for line in lines:
         count += len(line)
-        for char in line:
-            value = (value * BASE + ord(char)) % MODULUS
-        value = (value * BASE + 10) % MODULUS
-    return len(lines), count, value
+        for char in line + "\n":
+            code = ord(char)
+            for index, (base, modulus) in enumerate(HASHES):
+                values[index] = (values[index] * base + code) % modulus
+    return len(lines), count, *values
 
 
 def main() -> None:
@@ -43,7 +43,7 @@ def main() -> None:
 
     print("Paste this checker into SmileBASIC slot 1, then RUN 1 from Direct mode:")
     print(CHECKER_PATH.read_text(encoding="ascii"))
-    print("Expected LINES, CHARS, HASH:", *digest(lines))
+    print("Expected LINES, CHARS, H1, H2:", *digest(lines))
     if raw.endswith(b"\n"):
         print("If the final Enter made one extra empty editor line:", *digest(lines + [""]))
     print("A matching result verifies the editor text only. It does not make the exploit safe to run.")
