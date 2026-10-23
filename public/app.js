@@ -32,6 +32,9 @@ function markSteps() {
   }));
   $('start-run').disabled = !checks.every(([ok]) => ok) || ['waiting', 'connected'].includes(state?.status);
   $('run-note').textContent = state?.status === 'verified' ? 'FS demo verified by upstream host.' : state?.status === 'failed' ? 'Host stopped. Review the event log and restart the console before retrying.' : 'Only start after the Switch 2 is freshly booted and SmileBASIC is open.';
+  const transferReady = !!state?.nxhidReady && validIp($('switch1-ip').value) && $('nxhid-editor-ready').checked && state?.transfer?.status !== 'running';
+  $('nxhid-probe').disabled = !transferReady;
+  $('nxhid-bootstrap').disabled = !transferReady || !$('nxhid-probe-visible').checked;
 }
 
 function renderState(data) {
@@ -39,6 +42,10 @@ function renderState(data) {
   $('host-dot').classList.add('connected');
   $('host-label').textContent = 'LAN companion connected';
   $('host-detail').textContent = data.upstreamReady ? 'Pinned ns2jb checkout is ready.' : 'Run sh scripts/fetch-upstream.sh on the host.';
+  $('nxhid-controls').hidden = false;
+  $('nxhid-public-note').hidden = true;
+  $('nxhid-result').textContent = !data.nxhidReady ? 'On the host, run sh scripts/fetch-nxhid.sh first.' : data.transfer?.message || 'Ready for a short keyboard test.';
+  $('nxhid-result').classList.toggle('error', data.transfer?.status === 'failed');
   $('local-controls').hidden = false;
   $('companion-address-field').hidden = true;
   $('open-local').hidden = true;
@@ -96,7 +103,8 @@ function updateCompanionLink() {
       if ($(id).value.trim()) url.searchParams.set(key, $(id).value.trim());
     }
     $('open-local').href = url.href;
-  } catch { $('open-local').href = 'http://127.0.0.1:39381/'; }
+    $('nxhid-local-link').href = url.href;
+  } catch { $('open-local').href = 'http://127.0.0.1:39381/'; $('nxhid-local-link').href = $('open-local').href; }
 }
 
 document.querySelectorAll('.step').forEach(button => button.addEventListener('click', () => showStep(Number(button.dataset.step))));
@@ -106,6 +114,27 @@ for (const [id, key] of [['system-version', 'system'], ['smile-version', 'smile'
 }
 $('bootstrap-ready').checked = localStorage.getItem('switch2-bootstrap') === 'true';
 $('bootstrap-ready').addEventListener('change', () => { localStorage.setItem('switch2-bootstrap', String($('bootstrap-ready').checked)); markSteps(); });
+$('switch1-ip').addEventListener('input', markSteps);
+$('nxhid-editor-ready').addEventListener('change', markSteps);
+$('nxhid-probe-visible').addEventListener('change', markSteps);
+async function sendNxhid(mode) {
+  const button = mode === 'probe' ? $('nxhid-probe') : $('nxhid-bootstrap');
+  button.disabled = true;
+  $('nxhid-probe-visible').checked = false;
+  $('nxhid-result').textContent = mode === 'probe' ? 'Sending one test line…' : 'Typing the bootstrap; keep both consoles awake. This can take several minutes.';
+  try {
+    const response = await fetch('/api/nxhid/send', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Switch2-Local': '1' }, body: JSON.stringify({ switchIp: $('switch1-ip').value.trim(), mode, editorReady: $('nxhid-editor-ready').checked }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Could not start NXHID.');
+    renderState(result);
+  } catch (error) {
+    $('nxhid-result').textContent = error.message || 'NXHID transfer failed.';
+    $('nxhid-result').classList.add('error');
+    await refresh();
+  }
+}
+$('nxhid-probe').addEventListener('click', () => sendNxhid('probe'));
+$('nxhid-bootstrap').addEventListener('click', () => sendNxhid('bootstrap'));
 $('check-device').addEventListener('click', () => {
   const okay = $('system-version').value.trim() === requiredSystem && $('smile-version').value.trim() === requiredSmile && validIp($('console-ip').value);
   deviceConfirmed = okay;

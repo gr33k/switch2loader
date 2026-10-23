@@ -12,6 +12,7 @@ Updated 2026-10-23. These are wrapper-project gates. A live deployment should ke
 | LAN companion | PASS for idle/preflight | A systemd service served the state API on a LAN host, reported pinned upstream ready, and performed a console reachability check. No `/api/start` call or physical run was made. |
 | Mac USB sender research | PARTIAL | `cpypwn/mac2jb` source check and build passed on an Apple silicon Mac. Its unsigned kernel-extension source compiled, but was not installed or loaded; Mac security settings stayed unchanged. No USB enumeration test. This is not the default end-user route. |
 | Separate USB HID board sender | PENDING | Safer automation candidate; no board or physical Switch 2 transfer is available for qualification. |
+| Original Switch NXHID sender | PARTIAL | Owner has an Atmosphère-enabled original Switch, pending charge and LAN IP. Official NXHID 0.1.0 archive SHA256 `7562e80814e4a7212d69d17baff8c89618135fae536ad6f363f6c48c7f688752` was verified and unpacked in an isolated NAS workspace. Upstream NXHID host tests passed 48/48 at `bb380e4`. Pinned `.nro` and Python sender hashes are checked by the LAN companion. No FTP transfer to the original Switch or USB physical test yet. |
 | `NS2` on physical Switch 2 | PENDING | No published SmileBASIC download key and no qualified transfer on the target console yet. |
 | Physical FS demo | PENDING | No upstream `run.cjs` session or console execution yet. |
 | EmuHub Switch 2 client | PENDING | No app loader, graphics, audio, input, storage, core, or gameplay qualification. |
@@ -19,3 +20,9 @@ Updated 2026-10-23. These are wrapper-project gates. A live deployment should ke
 ## Generic rollback
 
 Stop and disable the local companion service to disable its LAN API. Remove only the firewall rules added for the companion and upstream protocol, and remove the static site route if desired. Preserve ignored `upstream/ns2jb` and generated `runs/` after a failed physical attempt for diagnosis. No Mac security setting was changed or kernel extension installed during this project test.
+
+## NXHID transfer preparation, 2026-10-23
+
+The local wizard's step 2 now explains the official NXHID package, full application mode, direct USB-C data connection, a one-line keyboard probe, and saving the pinned bootstrap as `NS2`. The local companion accepts only a private original-Switch IPv4 address, only the `probe` or pinned `bootstrap` transfer, and only an exact same-origin request with its local header. It verifies the pinned ns2jb commit and `bootstrap.bas` hash plus the NXHID sender and `.nro` hashes before sending, and refuses concurrent transfer/host sessions. The public static page does not expose a remote transfer API. Sender process completion means bytes were sent; the user must inspect the Switch 2 editor before the save gate is checked.
+
+The physical gates remain PENDING until the original Switch is charged and NXHID is installed and launched. If transfer misbehaves, use **B** in NXHID to disconnect and release keys, then exit with **+**. Keep the program editor contents for diagnosis instead of blindly rerunning. To roll back this preparation, revert the wizard commit and restart only its companion service; delete only the ignored `upstream/nxhid-release` directory after confirming no sender is active. Other services, Switch saves, and Mac boot security are outside this change.

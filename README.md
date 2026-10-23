@@ -6,19 +6,20 @@ A portable web guide and small Node.js LAN companion for the pinned [ns2jb](http
 
 - A Switch 2 on system **23.0.1**, SmileBASIC **4.4.9**, and more than 20 MiB of free SmileBASIC save space, as required by the pinned upstream procedure.
 - A Mac, Linux computer, or NAS reachable from the console on the same LAN, with Node.js 22 or newer and Git.
-- Upstream `bootstrap.bas` saved as `NS2` in SmileBASIC program slot 0. The upstream project does not publish a SmileBASIC download key. A USB HID keyboard sender may automate this **one-time** transfer; a browser USB cable by itself cannot do it.
+- Upstream `bootstrap.bas` saved as `NS2` in SmileBASIC program slot 0. The upstream project does not publish a SmileBASIC download key. An already-homebrewed original Switch can automate this **one-time** transfer with NXHID; a browser USB cable by itself cannot do it.
 
 ### Choosing the one-time transfer
 
-There is currently no verified, hardware-free, automatic import for `bootstrap.bas`. A public website or LAN server cannot send the first program into an unmodified SmileBASIC editor.
+There is currently no verified direct import of `bootstrap.bas` over LAN into an unmodified SmileBASIC editor. The original Switch running NXHID acts as the USB keyboard while the LAN companion sends it the pinned file.
 
 | Path | What it takes | Current status |
 | --- | --- | --- |
+| Already-homebrewed original Switch + [NXHID](https://github.com/hyln9/nxhid) | Install the official `.nro`, run it in full application mode, connect Switch 1 USB-C directly to Switch 2 with a data cable, and send from the LAN companion | Maintainer shows Switch 1 connected to Switch 2; package and host tests verified here, exact physical transfer still pending |
 | USB HID-capable microcontroller | A small board connected to the Switch 2 that acts as a keyboard; no Mac boot-security change | Plausible safer automation path; a Switch 2 sender still needs physical verification |
 | Regular USB keyboard | Manually enter and check the upstream program | No extra driver, but around 229 lines of typing |
 | `mac2jb` on Apple silicon | Experimental unsigned USB gadget driver; personal testing requires SIP disabled and Permissive Security in Recovery | Physically reported on one Mac model; not recommended as the default end-user path |
 
-If you have only a Mac, a USB cable, and the console, stop at the bootstrap step until you obtain a verified transfer method. The LAN companion becomes useful **after** `NS2` is saved.
+If you have only a Mac, a USB cable, and the Switch 2, stop at the bootstrap step until you obtain a verified transfer method. The LAN companion's NXHID transfer controls require a homebrewed original Switch; its FS demo becomes useful **after** `NS2` is saved.
 
 ## Fast path
 
@@ -28,6 +29,7 @@ On the LAN computer:
 git clone https://github.com/gr33k/switch2loader.git
 cd switch2loader
 sh scripts/fetch-upstream.sh
+sh scripts/fetch-nxhid.sh  # only if using an original homebrewed Switch
 SWITCH2_WIZARD_BIND=192.168.1.10 node server.mjs
 ```
 
@@ -37,7 +39,9 @@ The website accepts the console's LAN IP and can ping it **from the companion co
 
 ## One-time bootstrap transfer
 
-Download the pinned upstream [bootstrap.bas](https://gitlab.com/pepsipu/ns2jb/-/blob/95f5525089273c5fce0b95047f3600f8442e96ae/bootstrap.bas), transfer it into SmileBASIC slot 0, then save it as `NS2`. To check a regular USB keyboard first, use the Switch 2 dock in TV mode, plug the keyboard into a dock USB port, type `PRINT "USB OK"` in SmileBASIC Direct mode, and press Enter. [Nintendo documents docked TV mode for USB keyboards](https://support-jp.nintendo.com/app/answers/detail/a_id/35025); a USB-C hub in handheld/tabletop mode is unverified for this setup. A regular keyboard still requires manual entry of about 229 lines. This repository does not invent a download key or silently type the file through a website. [mac2jb](https://github.com/cpypwn/mac2jb) is an experimental Apple silicon USB gadget sender. Its personal-use unsigned kernel extension requires disabling SIP and using Permissive Security in Recovery under [Apple's current guidance](https://developer.apple.com/forums/thread/837391); its reported physical test used a different Mac model. Leave a daily-use Mac's security unchanged unless you deliberately accept those changes.
+For the already-homebrewed original Switch, run `sh scripts/fetch-nxhid.sh` on the host. It checks the official [NXHID 0.1.0 release](https://github.com/hyln9/nxhid/releases/tag/0.1.0) archive against its published SHA256 digest and extracts the `.nro` and Python sender into ignored `upstream/nxhid-release`. Copy `upstream/nxhid-release/switch/nxhid/nxhid.nro` to `/switch/nxhid/nxhid.nro` on the original Switch SD card using FTP or your usual SD method. Hold **R** while launching a game to open Homebrew Menu in full application mode, launch NXHID, and connect the original Switch USB-C port directly to the Switch 2 with a USB-C data cable. Wait for **Keyboard ready** and note the original Switch LAN IP. On Switch 2, open the **empty** SmileBASIC slot 0 editor. In the local wizard, enter the original Switch IP, send the one-line keyboard test, check it on screen, erase it, and press **Auto-type bootstrap**. The sender uses `ENTER,HOME,CTRL+DELETE` at each newline to avoid SmileBASIC auto-indent. Check the result on Switch 2 and save it as `NS2`. A successful send process alone does not prove the console received every line.
+
+If using a regular USB keyboard, use the Switch 2 dock in TV mode, plug the keyboard into a dock USB port, type `PRINT "USB OK"` in SmileBASIC Direct mode, and press Enter. [Nintendo documents docked TV mode for USB keyboards](https://support-jp.nintendo.com/app/answers/detail/a_id/35025); a USB-C hub in handheld/tabletop mode is unverified for this setup. A regular keyboard still requires manual entry of about 229 lines. [mac2jb](https://github.com/cpypwn/mac2jb) is an experimental Apple silicon USB gadget sender. Its personal-use unsigned kernel extension requires disabling SIP and using Permissive Security in Recovery under [Apple's current guidance](https://developer.apple.com/forums/thread/837391); its reported physical test used a different Mac model. Leave a daily-use Mac's security unchanged unless you deliberately accept those changes.
 
 ## Run the FS demo
 
