@@ -1,14 +1,15 @@
 import unittest
-from ftplib import error_perm
+from ftplib import error_perm, error_temp
 
 from upload_nxhid_ftp import install
 
 
 class FakeFtp:
-    def __init__(self, files=None, corrupt_readback=False):
+    def __init__(self, files=None, corrupt_readback=False, missing_code="550"):
         self.cwd_path = "/"
         self.files = dict(files or {})
         self.corrupt_readback = corrupt_readback
+        self.missing_code = missing_code
 
     def cwd(self, folder):
         if folder == "/switch":
@@ -25,7 +26,8 @@ class FakeFtp:
     def retrbinary(self, command, callback):
         name = command.removeprefix("RETR ")
         if name not in self.files:
-            raise error_perm("550 File missing")
+            error = error_temp if self.missing_code == "450" else error_perm
+            raise error(f"{self.missing_code} No such file or directory")
         data = self.files[name]
         if self.corrupt_readback and name.startswith("nxhid.nro.upload-"):
             data += b"wrong"
@@ -46,6 +48,12 @@ class FakeFtp:
 class FtpInstallTests(unittest.TestCase):
     def test_new_install_reads_back_before_final_name(self):
         ftp = FakeFtp()
+        result = install(ftp, b"verified-nro")
+        self.assertEqual(result["status"], "installed")
+        self.assertEqual(ftp.files, {"nxhid.nro": b"verified-nro"})
+
+    def test_switch_ftpd_classic_missing_file_code(self):
+        ftp = FakeFtp(missing_code="450")
         result = install(ftp, b"verified-nro")
         self.assertEqual(result["status"], "installed")
         self.assertEqual(ftp.files, {"nxhid.nro": b"verified-nro"})

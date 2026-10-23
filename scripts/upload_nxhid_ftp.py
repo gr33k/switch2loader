@@ -4,7 +4,7 @@
 import hashlib
 import io
 import json
-from ftplib import FTP, error_perm
+from ftplib import FTP, error_perm, error_temp
 from pathlib import Path
 import sys
 from datetime import datetime, timezone
@@ -19,8 +19,9 @@ def remote_bytes(ftp, name):
     chunks = []
     try:
         ftp.retrbinary(f"RETR {name}", chunks.append)
-    except error_perm as exc:
-        if str(exc).startswith("550"):
+    except (error_perm, error_temp) as exc:
+        # ftpd-classic on Switch reports a missing file as 450 rather than 550.
+        if str(exc).startswith(("550", "450 No such file or directory")):
             return None
         raise
     return b"".join(chunks)
@@ -31,7 +32,7 @@ def enter_switch_folder(ftp):
         try:
             ftp.cwd(folder)
             return
-        except error_perm:
+        except (error_perm, error_temp):
             pass
     raise RuntimeError("FTP did not show the Switch SD card's /switch folder. Check the FTP app and SD access.")
 
@@ -67,7 +68,7 @@ def install(ftp, payload):
     finally:
         try:
             ftp.delete(temp)
-        except error_perm:
+        except (error_perm, error_temp):
             pass
     return {"status": "installed", "path": "/switch/nxhid/nxhid.nro", "sha256": EXPECTED, "backup": backup}
 
