@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test session.test.mjs && python3 -m unittest discover -s scripts -p 'test_*.py'"
+    "test": "node --test session.test.mjs safety-hold.test.mjs && python3 -m unittest discover -s scripts -p 'test_*.py'"
   },
   "engines": { "node": ">=22" },
   "license": "MIT"

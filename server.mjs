@@ -14,6 +14,9 @@ const expectedCommit = '95f5525089273c5fce0b95047f3600f8442e96ae';
 const expectedBootstrapHash = '2261f65fb9ec0ed708ce0f0b6da5057168f706e541d956f658a3c2655e9e8c36';
 const expectedSenderHash = 'bd6439788048b8fd1c637cff5f63a5dcef9436db8519bdee8ed6a0ded39ecd31';
 const expectedNroHash = '88e016a11c296760cfdee9624f7fcd63dc20b21b9dc3d9b923d64fa6152605a3';
+// Safety hold: the FS run is suspended while a reported brick is investigated.
+// Keep this server-side so a direct API call cannot bypass the disabled UI.
+const fsDemoSafetyHold = true;
 const port = Number(process.env.SWITCH2_WIZARD_PORT || 39381);
 const bind = process.env.SWITCH2_WIZARD_BIND || '127.0.0.1';
 const session = { status: 'idle', stage: 0, command: '', events: [], hostIp: '', verified: false };
@@ -46,7 +49,7 @@ function event(kind, message) {
 }
 
 function snapshot() {
-  return { ...session, events: [...session.events], transfer: { ...transfer }, ftpInstall: { ...ftpInstall }, nxhidReady: nxhidReady(), upstreamReady: upstreamReady(), hostAddresses: ipv4Addresses(networkInterfaces()), expectedCommit };
+  return { ...session, events: [...session.events], transfer: { ...transfer }, ftpInstall: { ...ftpInstall }, nxhidReady: nxhidReady(), upstreamReady: upstreamReady(), fsDemoSafetyHold, hostAddresses: ipv4Addresses(networkInterfaces()), expectedCommit };
 }
 
 function json(res, code, value) {
@@ -173,6 +176,7 @@ const server = createServer(async (req, res) => {
     return execFile('ping', flags, { timeout: 3000 }, error => json(res, 200, { reachable: !error, address, note: 'Ping confirms reachability only; it cannot identify the console or its software versions.' }));
   }
   if (req.method === 'POST' && pathname === '/api/start') {
+    if (fsDemoSafetyHold) return json(res, 423, { error: 'FS demo is paused pending investigation of a reported Switch 2 brick. Do not run the bootstrap or retry a failed exploit.' });
     if (!allowedOrigin(req) || req.headers['x-switch2-local'] !== '1') return json(res, 403, { error: 'Open the LAN wizard and use its Start button.' });
     if (!upstreamReady()) return json(res, 409, { error: 'Pinned upstream checkout is missing. Run sh scripts/fetch-upstream.sh.' });
     if (child || sender || uploader) return json(res, 409, { error: 'A transfer or host session is already running.' });

@@ -45,15 +45,11 @@ Exit a foreground FTP app, hold **R** while launching a game to open Homebrew Me
 
 If using a regular USB keyboard, use the Switch 2 dock in TV mode, plug the keyboard into a dock USB port, type `PRINT "USB OK"` in SmileBASIC Direct mode, and press Enter. [Nintendo documents docked TV mode for USB keyboards](https://support-jp.nintendo.com/app/answers/detail/a_id/35025); a USB-C hub in handheld/tabletop mode is unverified for this setup. A regular keyboard still requires manual entry of about 229 lines. [mac2jb](https://github.com/cpypwn/mac2jb) is an experimental Apple silicon USB gadget sender. Its personal-use unsigned kernel extension requires disabling SIP and using Permissive Security in Recovery under [Apple's current guidance](https://developer.apple.com/forums/thread/837391); its reported physical test used a different Mac model. Leave a daily-use Mac's security unchanged unless you deliberately accept those changes.
 
-## Run the FS demo
+## FS demo safety hold
 
-1. Restart the console, open SmileBASIC, and enter Direct mode.
-2. Start the upstream host through the **LAN wizard** and select the actual host IP.
-3. On the console enter `LOAD "TXT:NS2"`, press Enter, enter `RUN`, press Enter, then enter `REMOVE NSR,&H60000000,&H3FFFFFFF` and press Enter.
-4. The expected `Out of memory` message should appear. Enter the fresh `V=START(...)` line displayed by that session's host. Never reuse an old line.
-5. Watch the event log. Only the upstream host's explicit `FS execution verified` message counts as a pass. Restart the console when done.
+The FS demo is paused while a [reported Switch 2 brick](https://x.com/KomodoSSBM/status/2113532446847414660) is investigated. The LAN companion rejects every `/api/start` request with HTTP 423, even if the website button is bypassed. Do not run `NS2`, enter the exploit commands, or retry a failed attempt. Preparing NXHID on an original homebrewed Switch remains available, but host tests and a successful keyboard transfer cannot establish that executing the exploit is safe.
 
-Do not use this on a different version and do not assume it supports EmuHub gameplay. The full game may retain the saved `NS2` program; the demo version may not.
+The pinned upstream README says to restart the console after any failed run and says its restoration checks cover native instructions and scratch cleanup. The failure report has not been independently tied to a particular command or recovery sequence. There is no verified zero-brick-risk path and no EmuHub client installation path yet. See [TEST_STATUS.md](TEST_STATUS.md) for the evidence boundary.
 
 ## Self hosting
 

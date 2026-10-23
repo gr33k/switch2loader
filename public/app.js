@@ -30,8 +30,8 @@ function markSteps() {
   $('run-checks').replaceChildren(...checks.map(([ok, label]) => {
     const row = document.createElement('div'); row.textContent = label; row.classList.toggle('ok', ok); return row;
   }));
-  $('start-run').disabled = !checks.every(([ok]) => ok) || ['waiting', 'connected'].includes(state?.status);
-  $('run-note').textContent = state?.status === 'verified' ? 'FS demo verified by upstream host.' : state?.status === 'failed' ? 'Host stopped. Review the event log and restart the console before retrying.' : 'Only start after the Switch 2 is freshly booted and SmileBASIC is open.';
+  $('start-run').disabled = true;
+  $('run-note').textContent = 'Safety hold: do not run NS2 or retry an exploit while a reported brick is investigated.';
   const hostBusy = ['waiting', 'connected'].includes(state?.status);
   const transferReady = !!state?.nxhidReady && validIp($('switch1-ip').value) && $('nxhid-editor-ready').checked && state?.transfer?.status !== 'running' && state?.ftpInstall?.status !== 'running' && !hostBusy;
   $('nxhid-probe').disabled = !transferReady;
@@ -67,7 +67,7 @@ function renderState(data) {
   $('progress-count').textContent = stage ? `${stage}/4` : '—';
   $('progress-label').textContent = stage ? 'Upstream reported stage' : 'Run progress starts when the host reports a stage';
   document.querySelector('.progress-track').setAttribute('aria-valuenow', String(stage));
-  $('switch-command').hidden = !data.command;
+  $('switch-command').hidden = true;
   $('start-command').textContent = data.command || '';
   $('event-count').textContent = String(data.events.length);
   $('event-log').replaceChildren(...(data.events.length ? data.events.slice(-12).map(item => {

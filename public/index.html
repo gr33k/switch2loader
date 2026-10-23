@@ -8,7 +8,7 @@
   <title>Switch 2 setup wizard</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css?v=20261023f">
-  <script defer src="./app.js?v=20261023e"></script>
+  <script defer src="./app.js?v=20261023g"></script>
 </head>
 <body>
   <div class="rain rain-left" aria-hidden="true">起動 0101 接続 1010 確認 0011 起動 0110 接続 1001 確認</div>
@@ -22,14 +22,14 @@
 
     <main id="wizard">
       <div class="hero"><h1>Switch 2 setup wizard <span lang="ja">起動</span></h1><p>Prepare SmileBASIC, connect your host, and verify each stage.</p></div>
-      <div class="truth-banner"><strong>Current capability:</strong> the upstream procedure verifies brief FS execution. A Switch 2 EmuHub app loader is still under development.</div>
+      <div class="truth-banner"><strong>Safety hold:</strong> FS execution is paused while a reported Switch 2 brick is investigated. Do not run NS2 or retry a failed attempt. NXHID preparation remains available; an EmuHub app loader is still under development.</div>
 
       <div class="workspace">
         <aside class="steps panel" aria-label="Setup steps">
           <button class="step active" data-step="1"><span class="step-number">1</span><span><strong>Check device</strong><small>Confirm versions and address</small></span></button>
           <button class="step" data-step="2"><span class="step-number">2</span><span><strong>Prepare SmileBASIC</strong><small>Transfer and save NS2</small></span></button>
           <button class="step" data-step="3"><span class="step-number">3</span><span><strong>Connect local host</strong><small>Run Node near the console</small></span></button>
-          <button class="step" data-step="4"><span class="step-number">4</span><span><strong>Verify FS demo</strong><small>Start and watch real events</small></span></button>
+          <button class="step" data-step="4"><span class="step-number">4</span><span><strong>FS demo on hold</strong><small>Execution paused for safety review</small></span></button>
         </aside>
 
         <section class="main-panel panel" aria-live="polite">
@@ -65,12 +65,11 @@
           </div>
 
           <div class="step-panel" data-panel="4">
-            <div class="eyeline">STEP 4 OF 4</div><h2>Choose what to run</h2><p class="lede">Only the upstream FS demo has a published, testable payload today. More choices will unlock after a real Switch 2 loader and package pass physical tests.</p>
-            <div class="payload-list"><div class="payload available"><strong>FS execution demo</strong><small>Available · pinned upstream procedure</small></div><div class="payload"><strong>General homebrew loader</strong><small>In development · no verified public install path</small></div><div class="payload"><strong>EmuHub client install</strong><small>In development · requires a verified loader and client package</small></div></div>
-            <p class="lede">The host will print a fresh <code>V=START(...)</code> command. Enter the short commands on the Switch 2 only when this page prompts you.</p>
+            <div class="eyeline">STEP 4 OF 4</div><h2>FS demo on hold</h2><p class="lede">A reported Switch 2 brick needs a clear failure analysis before this procedure can be recommended. Do not run <code>NS2</code>, enter exploit commands, or retry a failed attempt.</p>
+            <div class="payload-list"><div class="payload"><strong>FS execution demo</strong><small>Paused · safety review in progress</small></div><div class="payload"><strong>General homebrew loader</strong><small>In development · no verified public install path</small></div><div class="payload"><strong>EmuHub client install</strong><small>In development · requires a verified loader and client package</small></div></div>
             <div class="run-checks" id="run-checks"></div>
             <div class="command-block" id="switch-command" hidden><span>ENTER ON SWITCH 2 AFTER THE EXPECTED OUT OF MEMORY MESSAGE</span><code id="start-command"></code><button class="copy" id="copy-command">Copy command</button></div>
-            <div class="actions"><button class="primary" id="start-run" disabled>Start FS demo <span aria-hidden="true">→</span></button><span class="action-note" id="run-note">Complete the setup steps first.</span></div>
+            <div class="actions"><button class="primary" id="start-run" disabled>FS demo paused</button><span class="action-note" id="run-note">Safety review in progress. Do not run NS2.</span></div>
           </div>
         </section>
 
@@ -79,7 +78,7 @@
 
       <section class="session panel" aria-labelledby="session-heading"><div class="session-summary"><div class="eyeline">LIVE SESSION</div><h2 id="session-heading">Waiting for local host</h2><p id="session-message">Start the local companion, then open its wizard.</p></div><div class="session-detail"><div class="progress-head"><span id="progress-label">Run progress starts when the host reports a stage</span><span id="progress-count">—</span></div><div class="progress-track" role="progressbar" aria-label="Upstream run stage" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0"><div id="progress-fill"></div></div><div class="log-head">Recent events <span id="event-count">0</span></div><ol id="event-log" class="event-log"><li><time>--:--:--</time><span>No session started</span></li></ol></div></section>
 
-      <section id="guide" class="guide"><h2>What happens on the Switch 2?</h2><div class="guide-grid"><article><span>01</span><h3>Save the bootstrap once</h3><p>Use a USB HID typing device to transfer upstream <code>bootstrap.bas</code> into SmileBASIC slot 0 and save it as <code>NS2</code>. The full game can keep it for later runs.</p></article><article><span>02</span><h3>Start your local host</h3><p>Run the companion on a computer or NAS reachable by the console. Select that host's actual IP, then press <strong>Start FS demo</strong> in its local wizard.</p></article><article><span>03</span><h3>Enter short commands</h3><p>Restart the console, open SmileBASIC Direct mode, then enter <code>LOAD "TXT:NS2"</code>, <code>RUN</code>, and <code>REMOVE NSR,&amp;H60000000,&amp;H3FFFFFFF</code> separately. After the expected <em>Out of memory</em> message, enter the fresh <code>V=START(...)</code> line shown by the host.</p></article><article><span>04</span><h3>Read the real result</h3><p>Only the upstream host's verified completion counts as a pass. Restart the console when finished. This is an FS demo, not an EmuHub or emulator install.</p></article></div></section>
+      <section id="guide" class="guide"><h2>What happens on the Switch 2?</h2><div class="guide-grid"><article><span>01</span><h3>Prepare the keyboard path</h3><p>An original homebrewed Switch can run NXHID and act as a USB keyboard. Check a one-line probe in an empty SmileBASIC editor first.</p></article><article><span>02</span><h3>Inspect before saving</h3><p>If you choose to transfer <code>bootstrap.bas</code>, verify its contents on the Switch 2 before saving <code>NS2</code>. Transfer completion alone does not prove correctness.</p></article><article><span>03</span><h3>Do not execute</h3><p>The FS demo is paused. Do not run <code>NS2</code>, enter exploit commands, or retry a failed attempt while the reported brick is investigated.</p></article><article><span>04</span><h3>Wait for a verified path</h3><p>Host tests and a saved program do not establish physical Switch 2 safety or an EmuHub installation path.</p></article></div></section>
     </main>
     <footer><span>Switch 2 Setup · self-hosted research wizard</span><span><a href="https://gitlab.com/pepsipu/ns2jb" target="_blank" rel="noopener">Upstream ns2jb ↗</a> · <a href="https://github.com/gr33k/switch2loader" target="_blank" rel="noopener">Source ↗</a></span></footer>
   </div>
