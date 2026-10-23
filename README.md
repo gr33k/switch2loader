@@ -16,7 +16,7 @@ There is currently no verified, hardware-free, automatic import for `bootstrap.b
 | --- | --- | --- |
 | USB HID-capable microcontroller | A small board connected to the Switch 2 that acts as a keyboard; no Mac boot-security change | Plausible safer automation path; a Switch 2 sender still needs physical verification |
 | Regular USB keyboard | Manually enter and check the upstream program | No extra driver, but around 229 lines of typing |
-| `mac2jb` on Apple silicon | Experimental USB gadget driver and Reduced Security | Physically reported on one Mac model; not recommended as the default end-user path |
+| `mac2jb` on Apple silicon | Experimental unsigned USB gadget driver; personal testing requires SIP disabled and Permissive Security in Recovery | Physically reported on one Mac model; not recommended as the default end-user path |
 
 If you have only a Mac, a USB cable, and the console, stop at the bootstrap step until you obtain a verified transfer method. The LAN companion becomes useful **after** `NS2` is saved.
 
@@ -37,7 +37,7 @@ The website accepts the console's LAN IP and can ping it **from the companion co
 
 ## One-time bootstrap transfer
 
-Download the pinned upstream [bootstrap.bas](https://gitlab.com/pepsipu/ns2jb/-/blob/95f5525089273c5fce0b95047f3600f8442e96ae/bootstrap.bas), transfer it into SmileBASIC slot 0 using a verified USB HID keyboard sender, then save it as `NS2`. The upstream file is about 229 lines; this repository does not invent a download key or silently type it through a website. [mac2jb](https://github.com/cpypwn/mac2jb) is an experimental Apple silicon USB gadget sender. It requires changes to Mac boot security and an experimental kernel extension, and its reported physical test used a different Mac model. Leave a daily-use Mac's security unchanged unless you deliberately accept those changes.
+Download the pinned upstream [bootstrap.bas](https://gitlab.com/pepsipu/ns2jb/-/blob/95f5525089273c5fce0b95047f3600f8442e96ae/bootstrap.bas), transfer it into SmileBASIC slot 0, then save it as `NS2`. To check a regular USB keyboard first, connect it through a USB-C hub on the console, type `PRINT "USB OK"` in SmileBASIC Direct mode, and press Enter. A regular keyboard still requires manual entry of about 229 lines. This repository does not invent a download key or silently type the file through a website. [mac2jb](https://github.com/cpypwn/mac2jb) is an experimental Apple silicon USB gadget sender. Its personal-use unsigned kernel extension requires disabling SIP and using Permissive Security in Recovery under [Apple's current guidance](https://developer.apple.com/forums/thread/837391); its reported physical test used a different Mac model. Leave a daily-use Mac's security unchanged unless you deliberately accept those changes.
 
 ## Run the FS demo
 
