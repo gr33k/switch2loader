@@ -1,7 +1,11 @@
 import { isIP } from 'node:net';
 
 export function ipv4Addresses(interfaces) {
-  return [...new Set(Object.values(interfaces).flat().filter(value => value && value.family === 'IPv4' && !value.internal && isIP(value.address) === 4).map(value => value.address))];
+  return [...new Set(Object.entries(interfaces)
+    .filter(([name]) => !/^(docker|br-|veth|virbr)/.test(name))
+    .flatMap(([, values]) => values)
+    .filter(value => value && value.family === 'IPv4' && !value.internal && isIP(value.address) === 4)
+    .map(value => value.address))];
 }
 
 export function classifyHostLine(line) {

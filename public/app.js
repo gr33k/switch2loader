@@ -133,7 +133,8 @@ $('start-run').addEventListener('click', async () => {
   } catch (error) { $('run-note').textContent = error.message; $('run-note').classList.add('error'); await refresh(); }
 });
 $('copy-command').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('start-command').textContent); $('copy-command').textContent = 'Copied'; } catch { $('copy-command').textContent = 'Select and copy the command'; } });
-$('companion-address').value = localStorage.getItem('switch2-companion-url') || '';
+const suggestedHost = new URLSearchParams(location.search).get('host');
+$('companion-address').value = suggestedHost || localStorage.getItem('switch2-companion-url') || '';
 $('companion-address').addEventListener('input', updateCompanionLink);
 updateCompanionLink();
 if (local) { refresh(); setInterval(refresh, 1200); } else { $('session-message').textContent = 'Enter your NAS LAN address in step 3 and open the companion wizard.'; }

@@ -10,5 +10,5 @@ test('only exact upstream completion marks a run verified', () => {
 });
 
 test('host choices exclude loopback and duplicates', () => {
-  assert.deepEqual(ipv4Addresses({ a: [{ family: 'IPv4', internal: false, address: '192.168.1.10' }], b: [{ family: 'IPv4', internal: false, address: '192.168.1.10' }, { family: 'IPv4', internal: true, address: '127.0.0.1' }] }), ['192.168.1.10']);
+  assert.deepEqual(ipv4Addresses({ a: [{ family: 'IPv4', internal: false, address: '192.168.1.10' }], b: [{ family: 'IPv4', internal: false, address: '192.168.1.10' }, { family: 'IPv4', internal: true, address: '127.0.0.1' }], 'br-fake': [{ family: 'IPv4', internal: false, address: '172.17.0.1' }] }), ['192.168.1.10']);
 });

@@ -59,7 +59,9 @@
           </div>
 
           <div class="step-panel" data-panel="4">
-            <div class="eyeline">STEP 4 OF 4</div><h2>Verify FS demo</h2><p class="lede">The local host will print a fresh <code>V=START(...)</code> command. Enter the short commands on the Switch 2 only when this page prompts you.</p>
+            <div class="eyeline">STEP 4 OF 4</div><h2>Choose what to run</h2><p class="lede">Only the upstream FS demo has a published, testable payload today. More choices will unlock after a real Switch 2 loader and package pass physical tests.</p>
+            <div class="payload-list"><div class="payload available"><strong>FS execution demo</strong><small>Available · pinned upstream procedure</small></div><div class="payload"><strong>General homebrew loader</strong><small>In development · no verified public install path</small></div><div class="payload"><strong>EmuHub client install</strong><small>In development · requires a verified loader and client package</small></div></div>
+            <p class="lede">The host will print a fresh <code>V=START(...)</code> command. Enter the short commands on the Switch 2 only when this page prompts you.</p>
             <div class="run-checks" id="run-checks"></div>
             <div class="command-block" id="switch-command" hidden><span>ENTER ON SWITCH 2 AFTER THE EXPECTED OUT OF MEMORY MESSAGE</span><code id="start-command"></code><button class="copy" id="copy-command">Copy command</button></div>
             <div class="actions"><button class="primary" id="start-run" disabled>Start FS demo <span aria-hidden="true">→</span></button><span class="action-note" id="run-note">Complete the setup steps first.</span></div>

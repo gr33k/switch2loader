@@ -41,6 +41,10 @@ Do not use this on a different version and do not assume it supports EmuHub game
 
 `public/` is static and can be hosted from any ordinary web server. The public page links to a LAN companion address entered by each visitor and saved only in their browser. `server.mjs` serves the same page plus the local host API. No site-specific domain, IP, SSH key, token, or console data is stored in this repository. Review [TEST_STATUS.md](TEST_STATUS.md) for current evidence.
 
+To update a source checkout: `git pull --ff-only origin main`, run `npm test`, and restart only the companion service if one is installed. A web server pointing at the checkout's `public/` directory sees static updates immediately. The fetched `upstream/ns2jb` directory is ignored and preserved through Git pulls.
+
+The UI reserves future choices for a general homebrew loader and EmuHub install. They are explicitly unavailable until there is a compatible published payload and a physically verified Switch 2 client package.
+
 ## Scope and attribution
 
 This project is a guide and wrapper. The upstream exploit code is fetched from `pepsipu/ns2jb` at the pinned revision `95f5525089273c5fce0b95047f3600f8442e96ae`; it is not copied into this repo. Check upstream authorship and license before redistributing it. This wrapper is MIT licensed.
