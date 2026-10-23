@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#06110e">
+  <meta name="description" content="A self-hosted, step-by-step Switch 2 FS demo setup wizard with real local-host progress.">
+  <title>Switch 2 setup wizard</title>
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <div class="rain rain-left" aria-hidden="true">起動 0101 接続 1010 確認 0011 起動 0110 接続 1001 確認</div>
+  <div class="rain rain-right" aria-hidden="true">確認 1001 起動 0011 接続 0101 確認 1010 起動 0110</div>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="#wizard"><span class="brand-mark" aria-hidden="true">▣</span><span>Switch 2 Setup</span></a>
+      <span class="top-note">Open source · Self hosted</span>
+      <nav aria-label="Main navigation"><a href="#wizard">Wizard</a><a href="#guide">Guide</a><a href="https://github.com/gr33k/switch2loader" target="_blank" rel="noopener">Source ↗</a></nav>
+    </header>
+
+    <main id="wizard">
+      <div class="hero"><h1>Switch 2 setup wizard <span lang="ja">起動</span></h1><p>Prepare SmileBASIC, connect your host, and verify each stage.</p></div>
+      <div class="truth-banner"><strong>Current capability:</strong> the upstream procedure verifies brief FS execution. A Switch 2 EmuHub app loader is still under development.</div>
+
+      <div class="workspace">
+        <aside class="steps panel" aria-label="Setup steps">
+          <button class="step active" data-step="1"><span class="step-number">1</span><span><strong>Check device</strong><small>Confirm versions and address</small></span></button>
+          <button class="step" data-step="2"><span class="step-number">2</span><span><strong>Prepare SmileBASIC</strong><small>Transfer and save NS2</small></span></button>
+          <button class="step" data-step="3"><span class="step-number">3</span><span><strong>Connect local host</strong><small>Run Node near the console</small></span></button>
+          <button class="step" data-step="4"><span class="step-number">4</span><span><strong>Verify FS demo</strong><small>Start and watch real events</small></span></button>
+        </aside>
+
+        <section class="main-panel panel" aria-live="polite">
+          <div class="step-panel visible" data-panel="1">
+            <div class="eyeline">STEP 1 OF 4</div><h2>Check device</h2><p class="lede">Read these values on your own console. A website cannot detect its firmware or installed games over USB.</p>
+            <div class="field-grid">
+              <label class="field"><span>System version</span><input id="system-version" inputmode="decimal" placeholder="23.0.1" autocomplete="off"><small>Required by pinned upstream: 23.0.1</small></label>
+              <label class="field"><span>SmileBASIC version</span><input id="smile-version" inputmode="decimal" placeholder="4.4.9" autocomplete="off"><small>Required by pinned upstream: 4.4.9</small></label>
+              <label class="field field-wide"><span>Switch 2 LAN IP</span><input id="console-ip" inputmode="decimal" placeholder="192.168.1.25" autocomplete="off"><small>From the console's network settings; only used for your checklist.</small></label>
+            </div>
+            <div class="actions"><button class="primary" id="check-device">Confirm versions <span aria-hidden="true">→</span></button><button class="secondary" id="ping-device">Check IP reachability</button><span class="action-note" id="device-result">No device values confirmed yet.</span></div>
+          </div>
+
+          <div class="step-panel" data-panel="2">
+            <div class="eyeline">STEP 2 OF 4</div><h2>Prepare SmileBASIC</h2><p class="lede">The upstream bootstrap must exist as <code>NS2</code> in program slot 0. There is no published SmileBASIC download key.</p>
+            <ol class="instructions"><li>Open SmileBASIC 4.4.9 on system 23.0.1.</li><li>Transfer the <a href="https://gitlab.com/pepsipu/ns2jb/-/blob/95f5525089273c5fce0b95047f3600f8442e96ae/bootstrap.bas" target="_blank" rel="noopener">pinned bootstrap.bas ↗</a> into slot 0 using a USB HID keyboard sender, then save it as <code>NS2</code>.</li><li>Use a verified sender for your hardware. <a href="https://github.com/cpypwn/mac2jb" target="_blank" rel="noopener">mac2jb ↗</a> is experimental and requires Mac security changes; it was physically tested on a different Mac model. Do not assume a USB cable and Chrome will transfer the file.</li></ol>
+            <label class="confirm"><input id="bootstrap-ready" type="checkbox"><span>I can see the complete <code>NS2</code> program saved in SmileBASIC slot 0.</span></label>
+            <div class="actions"><button class="primary" id="to-host">Continue to host <span aria-hidden="true">→</span></button></div>
+          </div>
+
+          <div class="step-panel" data-panel="3">
+            <div class="eyeline">STEP 3 OF 4</div><h2>Connect local host</h2><p class="lede">Run the local companion on a Mac, Linux computer, or NAS the console can reach. The public website is the guide; the companion runs the actual upstream host process.</p>
+            <div class="status-card"><span class="status-dot" id="host-dot"></span><div><strong id="host-label">Local companion disconnected</strong><small id="host-detail">Open this wizard from the companion to control a session.</small></div></div>
+            <div class="command-block"><span>LOCAL SETUP</span><code>git clone https://github.com/gr33k/switch2loader.git<br>cd switch2loader<br>sh scripts/fetch-upstream.sh<br>node server.mjs</code></div>
+            <div id="local-controls" hidden><label class="field"><span>Host address reachable by the Switch 2</span><select id="host-ip"></select><small>Only addresses assigned to this computer are accepted.</small></label></div>
+            <label class="field" id="companion-address-field"><span>Companion address</span><input id="companion-address" inputmode="url" placeholder="http://192.168.1.10:39381/"><small>Enter your NAS or computer LAN address once; the public site saves it in this browser.</small></label>
+            <div class="actions"><a class="primary button-link" id="open-local" href="http://127.0.0.1:39381/">Open LAN wizard <span aria-hidden="true">↗</span></a><button class="secondary" id="refresh-host">Check host</button></div>
+          </div>
+
+          <div class="step-panel" data-panel="4">
+            <div class="eyeline">STEP 4 OF 4</div><h2>Verify FS demo</h2><p class="lede">The local host will print a fresh <code>V=START(...)</code> command. Enter the short commands on the Switch 2 only when this page prompts you.</p>
+            <div class="run-checks" id="run-checks"></div>
+            <div class="command-block" id="switch-command" hidden><span>ENTER ON SWITCH 2 AFTER THE EXPECTED OUT OF MEMORY MESSAGE</span><code id="start-command"></code><button class="copy" id="copy-command">Copy command</button></div>
+            <div class="actions"><button class="primary" id="start-run" disabled>Start FS demo <span aria-hidden="true">→</span></button><span class="action-note" id="run-note">Complete the setup steps first.</span></div>
+          </div>
+        </section>
+
+        <aside class="aside panel"><div class="eyeline">WHAT THIS DOES</div><p>Checks your entered prerequisites, starts the pinned upstream host on your own computer, and reports its real stages.</p><div class="divider"></div><p><strong>It does not install EmuHub yet.</strong> A verified Switch 2 app loader, graphics, audio, input, storage, and core loading are still required.</p><div class="divider"></div><div class="eyeline">CONNECTION</div><p>After NS2 is saved once, the console and host communicate over LAN. A USB cable alone cannot transfer the bootstrap from this website.</p></aside>
+      </div>
+
+      <section class="session panel" aria-labelledby="session-heading"><div class="session-summary"><div class="eyeline">LIVE SESSION</div><h2 id="session-heading">Waiting for local host</h2><p id="session-message">Start the local companion, then open its wizard.</p></div><div class="session-detail"><div class="progress-head"><span id="progress-label">Run progress starts when the host reports a stage</span><span id="progress-count">—</span></div><div class="progress-track" role="progressbar" aria-label="Upstream run stage" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0"><div id="progress-fill"></div></div><div class="log-head">Recent events <span id="event-count">0</span></div><ol id="event-log" class="event-log"><li><time>--:--:--</time><span>No session started</span></li></ol></div></section>
+
+      <section id="guide" class="guide"><h2>What happens on the Switch 2?</h2><div class="guide-grid"><article><span>01</span><h3>Save the bootstrap once</h3><p>Use a USB HID typing device to transfer upstream <code>bootstrap.bas</code> into SmileBASIC slot 0 and save it as <code>NS2</code>. The full game can keep it for later runs.</p></article><article><span>02</span><h3>Start your local host</h3><p>Run the companion on a computer or NAS reachable by the console. Select that host's actual IP, then press <strong>Start FS demo</strong> in its local wizard.</p></article><article><span>03</span><h3>Enter short commands</h3><p>Restart the console, open SmileBASIC Direct mode, then enter <code>LOAD "TXT:NS2"</code>, <code>RUN</code>, and <code>REMOVE NSR,&amp;H60000000,&amp;H3FFFFFFF</code> separately. After the expected <em>Out of memory</em> message, enter the fresh <code>V=START(...)</code> line shown by the host.</p></article><article><span>04</span><h3>Read the real result</h3><p>Only the upstream host's verified completion counts as a pass. Restart the console when finished. This is an FS demo, not an EmuHub or emulator install.</p></article></div></section>
+    </main>
+    <footer><span>Switch 2 Setup · self-hosted research wizard</span><span><a href="https://gitlab.com/pepsipu/ns2jb" target="_blank" rel="noopener">Upstream ns2jb ↗</a> · <a href="https://github.com/gr33k/switch2loader" target="_blank" rel="noopener">Source ↗</a></span></footer>
+  </div>
+</body>
+</html>
