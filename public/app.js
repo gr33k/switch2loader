@@ -18,7 +18,7 @@ function showStep(step) {
 }
 
 function markSteps() {
-  const done = [deviceConfirmed, $('bootstrap-ready').checked, !!state?.upstreamReady, state?.status === 'verified'];
+  const done = [deviceConfirmed, deviceConfirmed && $('bootstrap-ready').checked, deviceConfirmed && $('bootstrap-ready').checked && !!state?.upstreamReady, state?.status === 'verified'];
   document.querySelectorAll('.step').forEach((button, index) => button.classList.toggle('done', !!done[index]));
   const checks = [
     [deviceConfirmed, 'Versions entered and manually confirmed'],
