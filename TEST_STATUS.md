@@ -4,7 +4,7 @@ Updated 2026-10-23.
 
 | Gate | Status | Evidence |
 | --- | --- | --- |
-| Local source syntax | PASS | `node --check` on `server.mjs` and `public/app.js`. |
+| Local source syntax and wrapper tests | PASS | `node --check` on `server.mjs` and `public/app.js`; two scoped wrapper tests passed. The initial unscoped `node --test` also discovered upstream internal files and failed two tests due missing generated `connection.json`; `npm test` is scoped to this wrapper. |
 | Upstream pinned host | PASS on NAS | `ns2jb` revision `95f5525089273c5fce0b95047f3600f8442e96ae`; upstream `node test.cjs` passed 11/11. SHA256 manifest passed runtime files; README hash differed. |
 | Console LAN reachability | PASS | NAS and Mac pinged `192.168.10.25` 2/2 on 2026-10-23. Ping does not identify console or software. |
 | Website visual and interaction flow | PENDING | Needs browser inspection after build. |
